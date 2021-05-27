@@ -1,1 +1,1 @@
-[![Build Status](https://travis-ci.org/krsch/cpp-starter-project.svg?branch=master)](https://travis-ci.org/krsch/cpp-starter-project)
+[![Build Status](https://travis-ci.com/algoprog-is-hse/asio-example.svg?branch=main)](https://travis-ci.com/algoprog-is-hse/asio-example)
