@@ -8,14 +8,16 @@
 // file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 //
 
+#include <boost/asio.hpp>
 #include <boost/asio/buffer.hpp>
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/ip/tcp.hpp>
 #include <boost/asio/spawn.hpp>
 #include <boost/asio/steady_timer.hpp>
-#include <boost/asio.hpp>
+#include <charconv>
 #include <iostream>
 #include <memory>
+#include <string_view>
 #include <utility>
 
 using boost::asio::ip::tcp;
@@ -23,10 +25,13 @@ using boost::asio::ip::tcp;
 template <typename Class, typename Function>
 auto delegate(std::shared_ptr<Class> ptr, Function fun) {
     // return [ptr = std::move(ptr), fun]() {
-    return [ptr, fun](auto &&arg) { return (ptr.get()->*fun)(arg); };
+    return [ ptr, fun ]<typename... Args>(Args && ... arg) {
+        return (ptr.get()->*fun)(std::forward<Args>(arg)...);
+    };
 }
 
 class session : public std::enable_shared_from_this<session> {
+    // Curiosly recurring template pattern (CRTP)
   public:
     explicit session(boost::asio::io_context &io_context, tcp::socket t_socket)
         : socket(std::move(t_socket)), timer(io_context),
@@ -38,22 +43,28 @@ class session : public std::enable_shared_from_this<session> {
                                     self](boost::asio::yield_context yield) {
             try {
                 // std::array<char, 128> data;
-                std::string data;
-                std::locale loc{};
-                for (;;) {
+                std::locale loc{""};
+                for (;;) { // while (true)
+                    std::string data;
                     timer.expires_from_now(std::chrono::seconds(10));
-                    boost::asio::async_read_until(
+                    size_t m = boost::asio::async_read_until(
                         socket, boost::asio::dynamic_buffer(data), "\n", yield);
                     // https://www.boost.org/doc/libs/1_76_0/doc/html/boost_asio/overview/core/line_based.html
-                    if (!data.empty() && std::isdigit(data[0], loc)) {
+                    std::string_view text{data};
+                    if (m > 0 && !text.empty() && std::isdigit(text[0], loc)) {
                         char str[] = "hello, ";
-                        int n = std::atoi(data.c_str());
-                        for (int i=0; i<n; ++i)
-                            boost::asio::async_write(
-                                socket, boost::asio::buffer(str), yield);
+                        int n = 0;
+                        auto [ptr, ec] = std::from_chars(
+                            text.data(), std::to_address(text.end()), n);
+                        if (ec == std::errc{}) {
+                            text.remove_prefix(size_t(ptr - text.data()));
+                            for (int i = 0; i < n; ++i)
+                                boost::asio::async_write(
+                                    socket, boost::asio::buffer(str), yield);
+                        }
                     }
-                    boost::asio::async_write(
-                        socket, boost::asio::dynamic_buffer(data), yield);
+                    boost::asio::async_write(socket, boost::asio::buffer(text),
+                                             yield);
                 }
             } catch (std::exception &e) {
                 socket.close();
