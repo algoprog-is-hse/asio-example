@@ -27,6 +27,8 @@ conan_cmake_run(
   ENV CONAN_CMAKE_PROGRAM="${CMAKE_COMMAND}" ${ENV}
   )
 
+find_package(Boost REQUIRED COMPONENTS system coroutine)
+
 enable_testing()
 add_subdirectory(external/doctest)
 include(external/doctest/doctest.cmake)
