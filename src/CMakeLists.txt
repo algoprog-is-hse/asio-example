@@ -8,5 +8,4 @@ doctest_discover_tests(proj_test)
 # ^ Прочитать из proj_test список тестов
 
 add_executable(proj main.cpp lib.cpp)
-target_link_libraries(proj PUBLIC doctest::doctest default Boost::system Boost::coroutine CONAN_PKG::fmt)
-doctest_discover_tests(proj_test)
+target_link_libraries(proj PUBLIC doctest::doctest default Boost::system Boost::coroutine CONAN_PKG::fmt CONAN_PKG::nlohmann_json)

@@ -17,10 +17,15 @@
 #include <charconv>
 #include <iostream>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <string_view>
 #include <utility>
 
 using boost::asio::ip::tcp;
+using json = nlohmann::json;
+// TODO: add tests
+// TODO: add HTTP
+// TODO: add json
 
 template <typename Class, typename Function>
 auto delegate(std::shared_ptr<Class> ptr, Function fun) {
