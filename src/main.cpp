@@ -16,6 +16,7 @@
 #include <boost/asio/steady_timer.hpp>
 #include <charconv>
 #include <iostream>
+#include <locale>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <string_view>

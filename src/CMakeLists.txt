@@ -9,3 +9,5 @@ doctest_discover_tests(proj_test)
 
 add_executable(proj main.cpp lib.cpp)
 target_link_libraries(proj PUBLIC doctest::doctest default Boost::system Boost::coroutine CONAN_PKG::fmt CONAN_PKG::nlohmann_json)
+# fix error on Windows
+target_link_directories(proj PUBLIC "${Boost_LIBRARY_DIRS}")
