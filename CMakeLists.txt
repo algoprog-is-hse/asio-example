@@ -27,6 +27,8 @@ conan_cmake_run(
   ENV CONAN_CMAKE_PROGRAM="${CMAKE_COMMAND}" ${ENV}
   )
 
+# При использовании статической библиотеки нет необходимости копировать dll
+set(Boost_USE_STATIC_LIBS ON)
 find_package(Boost REQUIRED COMPONENTS system coroutine)
 
 enable_testing()
